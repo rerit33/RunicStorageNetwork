@@ -47,7 +47,7 @@ namespace RunicStorageNetwork {
    Add("error_unknown","Unable to complete the operation. See the mod log for details.","Не удалось завершить операцию. Подробности — в журнале мода.");
    Reason("error_supply","Network supply is unavailable.","Снабжение из сети недоступно.","supply unavailable");
    Reason("error_actor","The player is unavailable or their session changed.","Игрок недоступен или его сеанс изменился.","actor unavailable","actor data unavailable","actor session mismatch","actor identity mismatch","actor dead","sender does not own character","player context changed");
-   Reason("error_piece","This build piece is unavailable.","Эта постройка недоступна.","invalid hammer piece");
+   Reason("error_piece","This build piece is unavailable.","Эта постройка недоступна.","invalid hammer piece","excluded build tool","excluded build piece");
    Reason("error_free","Resource requirements changed because free crafting or building is enabled.","Требования к ресурсам изменились: включён бесплатный крафт или строительство.","free building","free crafting");
    Reason("error_station","The required crafting station is unavailable, out of range or below the required level.","Нужный станок недоступен, слишком далеко или не достиг требуемого уровня.","missing build station","station unavailable");
    Reason("error_recipe","The selected recipe or item upgrade is unavailable.","Выбранный рецепт или улучшение предмета недоступны.","recipe unavailable","recipe selection changed","upgrade item changed");

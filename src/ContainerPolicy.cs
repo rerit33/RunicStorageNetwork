@@ -64,17 +64,8 @@ namespace RunicStorageNetwork {
    var c=prefab.GetComponent<global::Container>();
    if(!c||!prefab.GetComponent<Piece>()||!prefab.GetComponent<ZNetView>())return "unsupported prefab";
    if(c.m_privacy!=global::Container.PrivacySetting.Public||c.m_wagon||c.m_rootObjectOverride||prefab.GetComponent<Ship>()||prefab.GetComponent<Rigidbody>())return "moving/private";
-   return Rules.Verdict(prefab.name,Components(prefab));
+   return Rules.Verdict(prefab.name,R.Components(prefab));
   }
 
-  // Base types are included so that a mod subclassing Incinerator or Turret is matched too.
-  static IEnumerable<string> Components(GameObject prefab){
-   var names=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-   foreach(var component in prefab.GetComponentsInChildren(typeof(Component),true)){
-    if(!component)continue;
-    for(var type=component.GetType();type!=null&&type!=typeof(Component)&&type!=typeof(Behaviour)&&type!=typeof(MonoBehaviour);type=type.BaseType)names.Add(type.Name);
-   }
-   return names;
-  }
  }
 }

@@ -22,6 +22,7 @@ namespace RunicStorageNetwork {
   internal static ConfigEntry<bool> Supply,DebugLogging;
   internal static ConfigEntry<float> StorageRadius,SupplyRadius,Rescan,RelayLink,RelayStorage,RelaySupply;
   internal static ConfigEntry<string> AllowedContainers,DeniedContainers,DeniedComponents;
+  internal static ConfigEntry<string> AllowedBuildTools,DeniedBuildTools,DeniedPieceComponents;
   internal static bool Healthy=true;
   Harmony harmony; AssetBundle bundle; GameObject corePrefab,relayPrefab;
   internal static bool Enabled=>Healthy&&Supply.Value;
@@ -46,6 +47,10 @@ namespace RunicStorageNetwork {
    DeniedContainers=Names("DeniedContainers",Logic.ContainerRules.DeniedPrefabDefault,"Prefab names, comma separated, that are never connected. Exclusion wins over AllowedContainers.");
    DeniedComponents=Names("DeniedComponents",Logic.ContainerRules.DeniedComponentDefault,"Component names, comma separated. A container whose prefab has any of these is never connected. Keeps machines that consume or fire their contents out of the network, including modded ones.");
    foreach(var entry in new[]{AllowedContainers,DeniedContainers,DeniedComponents})entry.SettingChanged+=ContainersChanged;
+   AllowedBuildTools=Tools("AllowedBuildTools","","Item prefab names, comma separated. Empty: every build tool qualifies, including tools added by other mods. When filled, only the listed tools build from the network.");
+   DeniedBuildTools=Tools("DeniedBuildTools",Logic.BuildToolRules.DeniedToolDefault,"Item prefab names, comma separated, that never build from the network. Exclusion wins over AllowedBuildTools.");
+   DeniedPieceComponents=Tools("DeniedPieceComponents",Logic.BuildToolRules.DeniedPieceComponentDefault,"Component names, comma separated. A piece whose prefab has any of these is never supplied. Keeps terrain shaping out of the network, including modded terrain tools.");
+   foreach(var entry in new[]{AllowedBuildTools,DeniedBuildTools,DeniedPieceComponents})entry.SettingChanged+=BuildToolsChanged;
    DebugLogging=Config.Bind("Diagnostics","DebugLogging",false,"Detailed transaction diagnostics without inventory dumps.");
    Supply.SettingChanged+=SettingsChanged;StorageRadius.SettingChanged+=SettingsChanged;SupplyRadius.SettingChanged+=SettingsChanged;Rescan.SettingChanged+=SettingsChanged;
    Info("0.5.5; Valheim="+global::Version.CurrentVersion+" Unity="+Application.unityVersion+" BepInEx="+typeof(BaseUnityPlugin).Assembly.GetName().Version+" Jotunn="+typeof(PieceManager).Assembly.GetName().Version);
@@ -82,6 +87,8 @@ namespace RunicStorageNetwork {
   void SettingsChanged(object sender,EventArgs e){Info("Applied configuration: supply="+Enabled+" storage="+StorageRadius.Value+" supplyRadius="+SupplyRadius.Value+" relayLink="+RelayLink.Value+" rescan="+Rescan.Value);Topology.Dirty();}
   // The coordinator validates every source against these lists, so the server copy decides.
   void ContainersChanged(object sender,EventArgs e){ContainerPolicy.Invalidate();Stockroom.ClearObservations();foreach(var core in Core.Live)if(core)core.Invalidate();Topology.Dirty();}
+  // The coordinator validates every placement against these lists, so the server copy decides.
+  void BuildToolsChanged(object sender,EventArgs e){BuildToolPolicy.Invalidate();Topology.Dirty();}
   void RegisterRelay(){
    relayPrefab=bundle.LoadAsset<GameObject>("assets/runicstoragegame/rsn_runicrelay.prefab");if(!relayPrefab)throw new InvalidOperationException("Runic relay asset missing");
    relayPrefab.SetActive(false);foreach(var t in relayPrefab.GetComponentsInChildren<Transform>(true))t.gameObject.layer=LayerMask.NameToLayer("piece");
@@ -95,6 +102,7 @@ namespace RunicStorageNetwork {
   }
   ConfigEntry<float> Number(string name,float value,float min,float max)=>Config.Bind("Network",name,value,new ConfigDescription(name,new AcceptableValueRange<float>(min,max),new ConfigurationManagerAttributes{IsAdminOnly=true}));
   ConfigEntry<string> Names(string name,string value,string description)=>Config.Bind("Containers",name,value,new ConfigDescription(description,null,new ConfigurationManagerAttributes{IsAdminOnly=true}));
+  ConfigEntry<string> Tools(string name,string value,string description)=>Config.Bind("Building",name,value,new ConfigDescription(description,null,new ConfigurationManagerAttributes{IsAdminOnly=true}));
   void CheckIds(){
    foreach(string id in new[]{"Stone","FineWood","Chain","Iron","SurtlingCore","GreydwarfEye","piece_workbench","Hammer"})if(!PrefabManager.Instance.GetPrefab(id)){Disable("Missing prefab "+id);Log.LogError("[RSN] Required prefab ID unresolved: "+id);}
    try{CoreMaterials.Apply(corePrefab);}catch(Exception e){Error("Native core materials failed; bundle materials retained",e);}
@@ -127,6 +135,6 @@ namespace RunicStorageNetwork {
    return result;
   }
   static string EffectNames(EffectList effects)=>string.Join(",",Array.ConvertAll(effects.m_effectPrefabs,e=>e.m_prefab.name));
-  void OnDestroy(){PrefabManager.OnVanillaPrefabsAvailable-=CheckIds;Supply.SettingChanged-=SettingsChanged;StorageRadius.SettingChanged-=SettingsChanged;SupplyRadius.SettingChanged-=SettingsChanged;Rescan.SettingChanged-=SettingsChanged;RelayLink.SettingChanged-=SettingsChanged;RelayStorage.SettingChanged-=SettingsChanged;RelaySupply.SettingChanged-=SettingsChanged;foreach(var entry in new[]{AllowedContainers,DeniedContainers,DeniedComponents})if(entry!=null)entry.SettingChanged-=ContainersChanged;harmony?.UnpatchSelf();}
+  void OnDestroy(){PrefabManager.OnVanillaPrefabsAvailable-=CheckIds;Supply.SettingChanged-=SettingsChanged;StorageRadius.SettingChanged-=SettingsChanged;SupplyRadius.SettingChanged-=SettingsChanged;Rescan.SettingChanged-=SettingsChanged;RelayLink.SettingChanged-=SettingsChanged;RelayStorage.SettingChanged-=SettingsChanged;RelaySupply.SettingChanged-=SettingsChanged;foreach(var entry in new[]{AllowedContainers,DeniedContainers,DeniedComponents})if(entry!=null)entry.SettingChanged-=ContainersChanged;foreach(var entry in new[]{AllowedBuildTools,DeniedBuildTools,DeniedPieceComponents})if(entry!=null)entry.SettingChanged-=BuildToolsChanged;harmony?.UnpatchSelf();}
  }
 }

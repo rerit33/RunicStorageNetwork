@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Building now draws resources from the network with build tools added by other mods, instead of only the vanilla hammer.
+- Added a `Building` configuration section to choose which build tools use the network. Changes apply without restarting the game, and in multiplayer the server decides.
+- The hoe and cultivator stay out of the network by default, along with terrain pieces from other mods.
+
 ## 0.5.5
 
 - Networks can now have an optional name, set by interacting with a core. Clear the name to leave the network unnamed.

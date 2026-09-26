@@ -18,20 +18,20 @@ namespace RunicStorageNetwork {
   internal static bool Locked(Inventory inv)=>Waiting!=null&&Waiting.Player&&Waiting.Player.GetInventory()==inv;
   internal static void Clear(){Waiting=null;Active=null;Outcomes.Clear();Stockroom.ClearObservations();CraftPreparation.Clear();Plugin.ClearCritical();}
   // The serving tray, hoe and cultivator also use TryPlacePiece/HaveRequirements.
-  // Only tools using the hammer's actual table participate in network building.
-  internal static PieceTable HammerTable(Player p){
+  // BuildToolPolicy decides which tables take part; the equipped tool must own the table
+  // it is placing from, so a tool cannot borrow another tool's pieces.
+  internal static PieceTable BuildTable(Player p){
    if(!p||p!=Player.m_localPlayer||!ObjectDB.instance)return null;
-   var hammer=ObjectDB.instance.GetItemPrefab("Hammer")?.GetComponent<ItemDrop>();
-   var table=hammer?hammer.m_itemData.m_shared.m_buildPieces:null;
    var tool=(ItemDrop.ItemData)R.Call(p,"GetRightItem",Type.EmptyTypes);
-   return table&&p.GetBuildTool()==table&&tool?.m_shared.m_buildPieces==table?table:null;
+   var table=tool?.m_shared.m_buildPieces;
+   return table&&p.GetBuildTool()==table&&BuildToolPolicy.Table(table)?table:null;
   }
-  internal static bool HammerPiece(Player p,Piece piece){
-   var table=HammerTable(p);if(!table||!piece||piece.m_repairPiece||piece.m_removePiece)return false;
+  internal static bool BuildPiece(Player p,Piece piece){
+   var table=BuildTable(p);if(!table||!piece||piece.m_repairPiece||piece.m_removePiece)return false;
    var prefab=ZNetScene.instance?ZNetScene.instance.GetPrefab(R.Id(piece.gameObject)):piece.gameObject;
-   return prefab&&table.m_pieces.Contains(prefab);
+   return prefab&&table.m_pieces.Contains(prefab)&&BuildToolPolicy.Eligible(prefab);
   }
-  internal static Core Context(Player p,bool craft){if(!p||p!=Player.m_localPlayer||!Plugin.Enabled||(!craft&&!HammerTable(p)))return null;var station=p.GetCurrentCraftingStation();if(craft&&(!station||station.m_upgrader))return null;return Core.Choose(craft?station.transform.position:p.transform.position,p.GetPlayerID());}
+  internal static Core Context(Player p,bool craft){if(!p||p!=Player.m_localPlayer||!Plugin.Enabled||(!craft&&!BuildTable(p)))return null;var station=p.GetCurrentCraftingStation();if(craft&&(!station||station.m_upgrader))return null;return Core.Choose(craft?station.transform.position:p.transform.position,p.GetPlayerID());}
   internal static bool Craft(InventoryGui gui,Player p){
    if(Active!=null)return true;if(Waiting!=null)return false;
    if(CraftPreparation.Claimed)return CraftPreparation.Execute(gui,p);
@@ -42,7 +42,7 @@ namespace RunicStorageNetwork {
 
   internal static bool Build(Player p,Piece piece){
    if(Active!=null)return true;if(Waiting!=null)return false;
-   if(!HammerPiece(p,piece))return true;var core=Context(p,false);
+   if(!BuildPiece(p,piece))return true;var core=Context(p,false);
    if(!core||p.NoCostCheat()||R.Get<bool>(p,"m_noPlacementCost")||ZoneSystem.instance.GetGlobalKey(piece.FreeBuildKey()))return true;
    var op=Create(p,core,true,R.Id(piece.gameObject),0,1);
    if(piece.m_craftingStation){var station=CraftingStation.HaveBuildStationInRange(piece.m_craftingStation.m_name,p.transform.position);if(station&&R.Valid(R.View(station)))op.Station=R.View(station).GetZDO().m_uid;}
@@ -106,7 +106,7 @@ namespace RunicStorageNetwork {
   static bool Intent(Pending p,out string reason){
    reason="player context changed";if(p.Cancelled||!p.Player||p.Player!=Player.m_localPlayer||p.Player.IsDead()||p.Player.NoCostCheat())return false;
    if(p.Op.Build){
-    reason="hammer context changed";if(!HammerPiece(p.Player,p.Piece)||!p.Player.InPlaceMode()||p.Player.GetSelectedPiece()!=p.Piece||(ItemDrop.ItemData)R.Call(p.Player,"GetRightItem",Type.EmptyTypes)!=p.Tool)return false;
+    reason="hammer context changed";if(!BuildPiece(p.Player,p.Piece)||!p.Player.InPlaceMode()||p.Player.GetSelectedPiece()!=p.Piece||(ItemDrop.ItemData)R.Call(p.Player,"GetRightItem",Type.EmptyTypes)!=p.Tool)return false;
    }else{
     reason="craft cancelled/changed";if(!p.Gui||!InventoryGui.IsVisible()||p.Player.GetCurrentCraftingStation()?.GetComponent<ZNetView>().GetZDO()?.m_uid!=p.Op.Station||R.Get<Recipe>(p.Gui,"m_craftRecipe")!=p.Recipe||R.Get<ItemDrop.ItemData>(p.Gui,"m_craftUpgradeItem")!=p.Upgrade)return false;
     var selection=R.Get<object>(p.Gui,"m_selectedRecipe");if((Recipe)selection.GetType().GetProperty("Recipe").GetValue(selection,null)!=p.Recipe)return false;
@@ -134,7 +134,7 @@ namespace RunicStorageNetwork {
     }
     if(!pending.Player||pending.Player!=Player.m_localPlayer||pending.Player.IsDead()||pending.Player.NoCostCheat())throw new InvalidOperationException("player context changed");
     if(pending.Op.Build){
-     if(!HammerPiece(pending.Player,pending.Piece)||R.Get<bool>(pending.Player,"m_noPlacementCost")||!pending.Player.InPlaceMode()||pending.Player.GetSelectedPiece()!=pending.Piece||(ItemDrop.ItemData)R.Call(pending.Player,"GetRightItem",Type.EmptyTypes)!=pending.Tool||pending.Tool==null||pending.Tool.m_durability<=0||!pending.Player.HaveStamina(pending.Tool.m_shared.m_attack.m_attackStamina))throw new InvalidOperationException("hammer context changed");
+     if(!BuildPiece(pending.Player,pending.Piece)||R.Get<bool>(pending.Player,"m_noPlacementCost")||!pending.Player.InPlaceMode()||pending.Player.GetSelectedPiece()!=pending.Piece||(ItemDrop.ItemData)R.Call(pending.Player,"GetRightItem",Type.EmptyTypes)!=pending.Tool||pending.Tool==null||pending.Tool.m_durability<=0||!pending.Player.HaveStamina(pending.Tool.m_shared.m_attack.m_attackStamina))throw new InvalidOperationException("hammer context changed");
      R.Call(pending.Player,"UpdatePlacementGhost",new[]{typeof(bool)},false);var ghost=R.Get<GameObject>(pending.Player,"m_placementGhost");
      if(!ghost||R.Get<object>(pending.Player,"m_placementStatus").ToString()!="Valid"||Vector3.Distance(ghost.transform.position,pending.Position)>0.05f||Quaternion.Angle(ghost.transform.rotation,pending.Rotation)>0.5f)throw new InvalidOperationException("placement moved/cancelled");
     }else{

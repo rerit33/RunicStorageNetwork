@@ -71,6 +71,18 @@ Exclusion always wins over inclusion, so a container listed in both is excluded.
 
 `rsn_status` in the console reports how many container types are supported and which are excluded, and the mod log lists them by name.
 
+Building draws on the network with any build tool, including hammers added by other mods. A tool takes part when the game gives it its own build menu, so nothing needs to be registered with this mod. The hoe and cultivator are excluded by default: they place terrain, not buildings.
+
+The `Building` section of the configuration decides which tools take part:
+
+| Setting | Default | Effect |
+|---|---|---|
+| `AllowedBuildTools` | empty | Empty: every build tool qualifies. Filled: only the listed item prefabs build from the network. |
+| `DeniedBuildTools` | `Hoe,Cultivator` | Item prefabs that never build from the network. |
+| `DeniedPieceComponents` | `TerrainOp,TerrainModifier` | A piece is never supplied when its prefab has one of these components. |
+
+Exclusion wins over inclusion here too, and these settings are administrator-only, so the server decides for the session. A piece that several tools can place stays available as long as one allowed tool can place it.
+
 Do not enable multiple crafting-from-chests systems at the same time without checking compatibility. Back up your world and character before installing or updating the mod.
 
 ### Created with AI assistance
@@ -151,6 +163,18 @@ Runic Storage Network объединяет сундуки базы в сеть �
 Исключение всегда важнее включения: хранилище, указанное в обоих списках, остаётся отключённым. Изменения применяются без перезапуска игры. В совместной игре эти параметры доступны только администратору и приходят с сервера, поэтому состав хранилищ для всей сессии определяет сервер.
 
 Команда `rsn_status` в консоли показывает, сколько типов хранилищ поддерживается и сколько исключено, а журнал мода перечисляет их по именам.
+
+Строительство берёт ресурсы из сети любым строительным инструментом, включая молоты из других модов. Инструмент участвует, если игра даёт ему собственное меню построек, поэтому регистрировать его в этом моде не нужно. Мотыга и культиватор исключены по умолчанию: они меняют ландшафт, а не строят.
+
+Состав инструментов задаётся в разделе `Building` конфигурации:
+
+| Параметр | По умолчанию | Действие |
+|---|---|---|
+| `AllowedBuildTools` | пусто | Пусто: подходит любой строительный инструмент. Заполнено: из сети строят только перечисленные префабы предметов. |
+| `DeniedBuildTools` | `Hoe,Cultivator` | Префабы предметов, которые никогда не строят из сети. |
+| `DeniedPieceComponents` | `TerrainOp,TerrainModifier` | Постройка не снабжается, если в её префабе есть один из этих компонентов. |
+
+Исключение здесь также важнее включения, а сами параметры доступны только администратору, поэтому состав определяет сервер. Постройка, доступная нескольким инструментам, остаётся доступной, пока её может поставить хотя бы один разрешённый инструмент.
 
 Не включайте одновременно несколько систем крафта из сундуков без проверки совместимости. Перед установкой и обновлением делайте резервную копию мира и персонажа.
 

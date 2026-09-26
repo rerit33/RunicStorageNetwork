@@ -17,8 +17,7 @@ namespace RunicStorageNetwork {
    reason="recipe unavailable";Piece.Requirement[] requirements;
    if(Build){
     var prefab=ZNetScene.instance.GetPrefab(Target);var piece=prefab?prefab.GetComponent<Piece>():null;
-    var hammer=ObjectDB.instance.GetItemPrefab("Hammer")?.GetComponent<ItemDrop>();
-    if(!piece||!piece.m_enabled||!hammer||!hammer.m_itemData.m_shared.m_buildPieces.m_pieces.Contains(prefab)||Quality!=0||Multiplier!=1)return false;
+    if(!piece||!piece.m_enabled||Quality!=0||Multiplier!=1||!BuildToolPolicy.Eligible(prefab))return false;
     requirements=piece.m_resources;
    }else{
     var recipe=ObjectDB.instance.m_recipes.FirstOrDefault(r=>r&&r.name==Target&&r.m_enabled);
@@ -37,8 +36,8 @@ namespace RunicStorageNetwork {
    Vector3 point=player.transform.position;Piece.Requirement[] req;
    if(Build){
     var prefab=ZNetScene.instance.GetPrefab(Target);var piece=prefab?prefab.GetComponent<Piece>():null;
-    var hammer=ObjectDB.instance.GetItemPrefab("Hammer")?.GetComponent<ItemDrop>();
-    reason="invalid hammer piece";if(!piece||!piece.m_enabled||!hammer||!hammer.m_itemData.m_shared.m_buildPieces.m_pieces.Contains(prefab)||Quality!=0||Multiplier!=1)return false;
+    reason="invalid hammer piece";if(!piece||!piece.m_enabled||Quality!=0||Multiplier!=1)return false;
+    reason=BuildToolPolicy.Reason(prefab);if(reason!=null)return false;
     reason="free building";if(ZoneSystem.instance.GetGlobalKey(piece.FreeBuildKey()))return false;
     reason="missing build station";if(piece.m_craftingStation&&!ZoneSystem.instance.GetGlobalKey(GlobalKeys.NoWorkbench)&&!CraftingStation.HaveBuildStationInRange(piece.m_craftingStation.m_name,point))return false;
     req=piece.m_resources;

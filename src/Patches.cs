@@ -63,7 +63,7 @@ namespace RunicStorageNetwork {
   static bool Consume(Player __instance)=>Actions.Active==null||Actions.Active.Player!=__instance;
   static bool HaveCraft(Player __instance,Recipe piece,bool discover,int qualityLevel,int amount,ref bool __result){if(discover)return true;if(!Actions.HaveCraft(__instance,piece,qualityLevel,amount,out bool result))return true;__result=result;return false;}
   static bool HaveBuild(Player __instance,Piece piece,Player.RequirementMode mode,ref bool __result){
-   if(mode==Player.RequirementMode.IsKnown||!Actions.HammerPiece(__instance,piece))return true;var core=Actions.Context(__instance,false);if(!core)return true;
+   if(mode==Player.RequirementMode.IsKnown||!Actions.BuildPiece(__instance,piece))return true;var core=Actions.Context(__instance,false);if(!core)return true;
    if(Actions.Active?.Piece==piece){__result=true;return false;}
    if(piece.m_craftingStation){if(mode==Player.RequirementMode.CanAlmostBuild){if(!R.Get<Dictionary<string,int>>(__instance,"m_knownStations").ContainsKey(piece.m_craftingStation.m_name)){__result=false;return false;}}
     else if(!CraftingStation.HaveBuildStationInRange(piece.m_craftingStation.m_name,__instance.transform.position)&&!ZoneSystem.instance.GetGlobalKey(GlobalKeys.NoWorkbench)){__result=false;return false;}}
@@ -76,7 +76,7 @@ namespace RunicStorageNetwork {
    if(!Actions.FirstIngredient(__instance,recipe,qualityLevel,craftMultiplier,out var item,out int need,out int extra))return true;__result=item;amount=need;extraAmount=extra;return false;
   }
   static void Requirement(Transform elementRoot,Piece.Requirement req,Player player,bool craft,int quality,int craftMultiplier,bool __result){
-   if(!craft&&!Actions.HammerPiece(player,player?player.GetSelectedPiece():null))return;
+   if(!craft&&!Actions.BuildPiece(player,player?player.GetSelectedPiece():null))return;
    if(!__result||!req.m_resItem)return;var core=Actions.Context(player,craft);if(!core)return;
    int needed=req.GetAmount(quality)*craftMultiplier;if(needed<=0)return;var needs=new List<Need>{new Need(req.m_resItem.name,needed)};
    var stock=craft?CraftPreparation.Stock(player,needs):Stockroom.Available(player,core,needs);int count=craft?stock.GroupBy(s=>s.Quality).Select(g=>g.Sum(s=>s.Amount)).DefaultIfEmpty(0).Max():stock.Sum(s=>s.Amount);

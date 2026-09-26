@@ -38,6 +38,6 @@ static class PlannerTests {
   Test("known failure restores operation delta",()=>{var o=new FakeOwner{Count=12};o.Prepare("a");o.Pay("a",10);o.Release("a",true);o.Release("a",true);Assert(o.Count==12,"compensation repeated");});
   Test("pure player protocol",()=>{var d=new Decision("a",new string[0]);d.Commit();Assert(d.Complete(),"local protocol");});
   Test("unknown sender rejected",()=>{var d=new Decision("a",new[]{"x"});bool threw=false;try{d.Prepared("intruder");}catch(InvalidOperationException){threw=true;}Assert(threw,"sender");});
-  passed+=RelayTests.Run();passed+=LocalizationTests.Run();passed+=LargeNetworkTests.Run();passed+=HoverCountTests.Run();passed+=MultiplayerTests.Run();passed+=RecoveryTests.Run();passed+=CraftOfferTests.Run();passed+=CraftOverviewTests.Run();passed+=ContainerPolicyTests.Run();passed+=NetworkLabelTests.Run();Console.WriteLine("RESULT "+passed+" isolated tests passed; no Valheim process, world or clients.");return 0;
+  passed+=RelayTests.Run();passed+=LocalizationTests.Run();passed+=LargeNetworkTests.Run();passed+=HoverCountTests.Run();passed+=MultiplayerTests.Run();passed+=RecoveryTests.Run();passed+=CraftOfferTests.Run();passed+=CraftOverviewTests.Run();passed+=ContainerPolicyTests.Run();passed+=BuildToolTests.Run();passed+=NetworkLabelTests.Run();Console.WriteLine("RESULT "+passed+" isolated tests passed; no Valheim process, world or clients.");return 0;
  }catch(Exception e){Console.Error.WriteLine(e);return 1;}}
 }

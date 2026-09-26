@@ -16,5 +16,15 @@ namespace RunicStorageNetwork {
   internal static ZNetView View(Component c)=>c?c.GetComponent<ZNetView>():null;
   internal static bool Valid(ZNetView v)=>v&&v.IsValid()&&v.GetZDO()!=null;
   internal static string Key(ZDOID id)=>id.UserID.ToString("X16")+":"+id.ID.ToString("X8");
+  // Every component type name on a prefab, base types included, so a configured rule
+  // matches a mod that subclasses the component it names.
+  internal static IEnumerable<string> Components(GameObject prefab){
+   var names=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+   foreach(var component in prefab.GetComponentsInChildren(typeof(Component),true)){
+    if(!component)continue;
+    for(var type=component.GetType();type!=null&&type!=typeof(Component)&&type!=typeof(Behaviour)&&type!=typeof(MonoBehaviour);type=type.BaseType)names.Add(type.Name);
+   }
+   return names;
+  }
  }
 }

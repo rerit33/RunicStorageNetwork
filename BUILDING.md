@@ -35,7 +35,7 @@ These tests require only the Unity compiler/reference assemblies and Windows, wi
   -Output '.\artifacts\tests'
 ```
 
-They cover resource planning, network graphs, reservations, recovery, localization, resource counts and the container allow/deny rules. They do not simulate Valheim networking, Harmony patches or the game UI; multiplayer changes also need in-game testing.
+They cover resource planning, network graphs, reservations, recovery, localization, resource counts and the container and build-tool allow/deny rules. They do not simulate Valheim networking, Harmony patches or the game UI; multiplayer changes also need in-game testing.
 
 ## Save local paths
 
