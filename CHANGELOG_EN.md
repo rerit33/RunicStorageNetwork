@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Recipes are now resolved the same way at every step of a network craft. Ingredient selection could previously use a different recipe than the one that was validated when two recipes share an asset name.
+- A recipe that cannot be resolved now cancels the action instead of raising an error.
+- The mod log reports the recipe index when the game loads, including any recipe names that are not unique.
+
 ## 0.5.5
 
 - Networks can now have an optional name, set by interacting with a core. Clear the name to leave the network unnamed.

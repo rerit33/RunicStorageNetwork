@@ -21,7 +21,7 @@ namespace RunicStorageNetwork {
     if(!piece||!piece.m_enabled||!hammer||!hammer.m_itemData.m_shared.m_buildPieces.m_pieces.Contains(prefab)||Quality!=0||Multiplier!=1)return false;
     requirements=piece.m_resources;
    }else{
-    var recipe=ObjectDB.instance.m_recipes.FirstOrDefault(r=>r&&r.name==Target&&r.m_enabled);
+    var recipe=RecipeIndex.Find(Target);
     if(!recipe||Quality<1||Quality>recipe.m_item.m_itemData.m_shared.m_maxQuality)return false;requirements=recipe.m_resources;
    }
    Needs=Stockroom.Requirements(requirements,Quality,Multiplier);reason="invalid requirements";
@@ -43,7 +43,7 @@ namespace RunicStorageNetwork {
     reason="missing build station";if(piece.m_craftingStation&&!ZoneSystem.instance.GetGlobalKey(GlobalKeys.NoWorkbench)&&!CraftingStation.HaveBuildStationInRange(piece.m_craftingStation.m_name,point))return false;
     req=piece.m_resources;
    }else{
-    var recipe=ObjectDB.instance.m_recipes.FirstOrDefault(r=>r&&r.name==Target&&r.m_enabled);reason="recipe unavailable";if(!recipe||Quality<1||Quality>recipe.m_item.m_itemData.m_shared.m_maxQuality)return false;
+    var recipe=RecipeIndex.Find(Target);reason="recipe unavailable";if(!recipe||Quality<1||Quality>recipe.m_item.m_itemData.m_shared.m_maxQuality)return false;
     var station=ZNetScene.instance.FindInstance(Station)?.GetComponent<CraftingStation>();reason="station unavailable";if(!station||station.m_upgrader||!station.InUseDistance(player)||!station.CheckUsable(player,false))return false;
     var required=recipe.GetRequiredStation(Quality);if(required&&(station.m_name!=required.m_name||station.GetLevel()<recipe.GetRequiredStationLevel(Quality)))return false;
     reason="free crafting";if(ZoneSystem.instance.GetGlobalKey(GlobalKeys.NoCraftCost))return false;
@@ -57,7 +57,11 @@ namespace RunicStorageNetwork {
    reason="ok";return true;
   }
   internal bool SelectNeeds(List<Stock> stock){
-   if(!Build&&ObjectDB.instance.m_recipes.First(r=>r.name==Target).m_requireOnlyOneIngredient){
+   // Resolved through the same index as Validate: a linear First() here could pick a
+   // different recipe for an ambiguous name, or throw where the caller expects a refusal.
+   var recipe=Build?null:RecipeIndex.Find(Target);
+   if(!Build&&!recipe)return false;
+   if(!Build&&recipe.m_requireOnlyOneIngredient){
     foreach(var n in Needs){var one=new List<Need>{new Need(n.Item,n.Amount)};if(Stockroom.Qualities(one,stock,true)){Needs=one;return true;}}return false;
    }
    return Stockroom.Qualities(Needs,stock,!Build);

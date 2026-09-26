@@ -130,7 +130,7 @@ namespace RunicStorageNetwork {
    offer=null;window=null;nextProbe=Time.unscaledTime+1;Topology.Dirty();Problem(reason);
   }
   static void Problem(string reason){
-   Plugin.Debug("preflight: "+reason);
+   Plugin.Debug("preflight: "+reason+" target="+(desired?.Op.Target??"none")+(RecipeIndex.Ambiguous(desired?.Op.Target)?" (ambiguous recipe name)":""));
    if(reason=="offer expired"||reason=="offer cancelled"||reason.Contains("insufficient")||reason.Contains("busy/reserved")||reason=="queue timeout"||reason=="station unavailable"||reason=="recipe unavailable"||reason.Contains("access denied")){failureSince=-1;return;}
    failure=reason;if(failureSince<0)failureSince=Time.unscaledTime;
    if(Time.unscaledTime-failureSince>=8)Plugin.Critical("preflight-"+desired?.Op.Target,"Cannot confirm selected recipe after background recovery: "+failure);
