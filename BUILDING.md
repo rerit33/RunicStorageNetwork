@@ -51,6 +51,10 @@ The same command also runs `BuildToolRuntimeTests.exe`. It compiles the producti
 
 It also runs `RecipeRuntimeTests.exe` against the production recipe index and transaction requirement-selection methods. This covers live recipe changes, duplicate names, different registration orders across peers, stale operations and rate-limited diagnostics. These tests use stand-ins; they do not establish compatibility with a mod's custom crafting callbacks.
 
+For building-patch compatibility, run `tools/TestBuildPatches.ps1` with the same local path configuration. This separate check requires the installed BepInEx Harmony library. It applies the production transpilers to managed stand-ins in both patch orders, checking foreign prefixes/postfixes, creation wrappers, deferred placement, output tracking after exceptions and free-relay refunds. It also checks the hook locations in the installed game's IL using Cecil, without executing game code. It does not launch Valheim or prove in-game mod compatibility.
+
+For an in-game check, build a ValheimRAFT vehicle and attach a floor and steering wheel, first with carried materials and then using storage-network materials. Verify ordinary building and the serving tray, cancellation while payment is pending, and material counts after building and dismantling. Also check without ValheimRAFT. Update the host and participating clients together when testing network-funded building.
+
 Recipe requests carry a versioned content key in the target field, and ingredient-inspection replies include the owner's storage revision. Use matching builds on all clients and the server.
 
 The command also runs `StorageIndexRuntimeTests.exe`, `CraftInspectionRuntimeTests.exe` and `CraftPreparationRuntimeTests.exe` against production code with game stand-ins. They cover incremental updates across 95 containers, inventory events and synchronized revisions, owner changes, delayed replies, reservations acquired only on click, cancellation, repeated clicks and recipe checks before starting a craft. Pure index tests also cover queries with 5,000 unrelated sources. These are correctness checks, not in-game performance measurements.

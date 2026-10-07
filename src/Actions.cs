@@ -67,7 +67,8 @@ namespace RunicStorageNetwork {
    if(piece.m_craftingStation){var station=CraftingStation.HaveBuildStationInRange(piece.m_craftingStation.m_name,p.transform.position);if(station&&R.Valid(R.View(station)))op.Station=R.View(station).GetZDO().m_uid;}
    if(!op.Validate(out _,out _,out _))return false;
    var plan=Planner.Plan(op.Needs,Stockroom.Available(p,core,op.Needs),true);if(plan==null)return false;if(plan.All(d=>d.Source=="player"))return true;
-   R.Call(p,"UpdatePlacementGhost",new[]{typeof(bool)},false);
+   // Called from TryPlacePiece's valid-placement branch, after the native raycast
+   // and other mods' placement checks. Do not run those callbacks a second time.
    if(R.Get<object>(p,"m_placementStatus").ToString()!="Valid")return true;
    var ghost=R.Get<GameObject>(p,"m_placementGhost");if(!ghost)return true;
    Start(new Pending{Op=op,Player=p,Piece=piece,Tool=(ItemDrop.ItemData)R.Call(p,"GetRightItem",Type.EmptyTypes),Position=ghost.transform.position,Rotation=ghost.transform.rotation},plan);return false;

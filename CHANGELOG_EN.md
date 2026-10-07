@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Fixed a building conflict with ValheimRAFT that could prevent new pieces from attaching to a ship. Improved compatibility with other mods that customize building placement.
+
 ## 1.0.0
 
 - Experimental distant storage is now enabled by default for new configurations. Existing settings are kept.
