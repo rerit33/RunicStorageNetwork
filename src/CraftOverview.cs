@@ -12,7 +12,7 @@ namespace RunicStorageNetwork {
  internal static class CraftOverview {
   static InventoryGui gui;static Player player;static CraftingStation station;static Core core;
   static float nextScan;static bool rowsDirty;static int revision=-1;
-  static int topologyRevision=-1;static bool teleportAll;
+  static int topologyRevision=-1;static bool teleportAll,gatewayCarriesAllItems;
   static object[] rowQueue;static int rowIndex;
   internal static void Clear(){gui=null;player=null;station=null;core=null;nextScan=0;rowsDirty=false;rowQueue=null;revision=-1;}
   internal static void Rescan(){nextScan=0;rowsDirty=true;}
@@ -30,7 +30,8 @@ namespace RunicStorageNetwork {
     nextScan=Time.unscaledTime+.5f;var current=Actions.Context(player,true);
     if(core!=current){core=current;rowsDirty=true;}
     bool portals=UnloadedNetworks.Enabled&&ZoneSystem.instance&&ZoneSystem.instance.GetGlobalKey(GlobalKeys.TeleportAll);
-    if(topologyRevision!=Topology.DisplayRevision||teleportAll!=portals){topologyRevision=Topology.DisplayRevision;teleportAll=portals;rowsDirty=true;}
+    bool carriesAll=Plugin.GatewayCarriesAllItems.Value;
+    if(topologyRevision!=Topology.DisplayRevision||teleportAll!=portals||gatewayCarriesAllItems!=carriesAll){topologyRevision=Topology.DisplayRevision;teleportAll=portals;gatewayCarriesAllItems=carriesAll;rowsDirty=true;}
    }
    if(revision!=StorageIndex.Revision){revision=StorageIndex.Revision;rowsDirty=true;}
   }

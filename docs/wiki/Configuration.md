@@ -53,6 +53,7 @@ All distances are in metres. Larger radii can include more nodes and chests and 
 | Setting in `[Network]` | Default | Allowed values | Effect |
 | --- | --- | --- | --- |
 | `SupplyEnabled` | `true` | `true` / `false` | Enables network resource supply. Disabling it keeps the build pieces available, but stops new API payments as well. |
+| `GatewayCarriesAllItems` | `false` | `true` / `false` | Lets Runic Gateways carry every item, including ore and metal bars. |
 | `StorageRadius` | `20` | `1`–`100` | Core-to-storage connection radius. |
 | `SupplyRadius` | `20` | `1`–`100` | Supply radius around a core for crafting, building and storage access. |
 | `RelayLinkRange` | `50` | `1`–`100` | Maximum distance for links between network nodes. |

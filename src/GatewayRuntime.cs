@@ -38,9 +38,8 @@ namespace RunicStorageNetwork {
   }
   internal static bool Teleportable(string item){
    var prefab=ZNetScene.instance?ZNetScene.instance.GetPrefab(item):null;var drop=prefab?prefab.GetComponent<ItemDrop>():null;var data=drop?.m_itemData?.m_shared;
-   // Same item rules as vanilla Inventory.IsTeleportable(false), including the
-   // world's normal portal modifier. No item/category whitelist.
-   return data!=null&&data.m_toolTier<1000&&(data.m_teleportable||ZoneSystem.instance&&ZoneSystem.instance.GetGlobalKey(GlobalKeys.TeleportAll));
+   // This setting is the only difference from vanilla's portal rule.
+   return data!=null&&data.m_toolTier<1000&&(data.m_teleportable||ZoneSystem.instance&&ZoneSystem.instance.GetGlobalKey(GlobalKeys.TeleportAll)||Plugin.GatewayCarriesAllItems.Value);
   }
   internal static bool ValidatePlan(Operation op,IEnumerable<Debit> plan){
    if(!UnloadedNetworks.Enabled)return true;
