@@ -33,6 +33,7 @@
 !/tools/
 /tools/*
 !/tools/Compile.ps1
+!/tools/TestBuildPatches.ps1
 !/tools/BuildUnloadedExperiment.ps1
 !/tools/BuildApiPreview.ps1
 !/tools/ValidateRelease.ps1

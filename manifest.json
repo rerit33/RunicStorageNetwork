@@ -1,6 +1,6 @@
 {
   "name": "RunicStorageNetwork",
-  "version_number": "1.0.0",
+  "version_number": "1.0.1",
   "website_url": "https://github.com/rerit33/RunicStorageNetwork",
   "description": "Connects your base's chests into a network. Craft and upgrade items, build using stored resources, and extend coverage with Runic Relays. Adds four build pieces and two codex items. Created with AI assistance. ",
   "dependencies": [

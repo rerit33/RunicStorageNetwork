@@ -9,7 +9,7 @@ using UnityEngine;
 using RunicStorageNetwork.Logic;
 
 namespace RunicStorageNetwork {
- internal static class Patches {
+ internal static partial class Patches {
   internal static void Install(Harmony h){
    Patch(h,typeof(Humanoid),"SetupEquipment",Type.EmptyTypes,null,nameof(BuilderEquipped));
    Patch(h,typeof(ItemDrop.ItemData),"GetTooltip",new[]{typeof(ItemDrop.ItemData),typeof(int),typeof(bool),typeof(float),typeof(int),typeof(bool)},null,nameof(BuilderTooltip));
@@ -22,7 +22,7 @@ namespace RunicStorageNetwork {
    Patch(h,typeof(InventoryGui),"OnCraftCancelPressed",Type.EmptyTypes,null,nameof(CraftCancelled));
    Patch(h,typeof(InventoryGui),"Hide",Type.EmptyTypes,null,nameof(CraftClosed));
    Patch(h,typeof(InventoryGui),"UpdateCraftingPanel",new[]{typeof(bool)},nameof(CraftOpened));
-   Patch(h,typeof(Player),"TryPlacePiece",new[]{typeof(Piece)},nameof(Build));
+   Patch(h,typeof(Player),"TryPlacePiece",new[]{typeof(Piece)},null,null,nameof(BuildGateIL));
    Patch(h,typeof(Player),"PlacePiece",new[]{typeof(Piece),typeof(Vector3),typeof(Quaternion),typeof(bool),typeof(bool)},null,null,nameof(BuildIL));
    Patch(h,typeof(Player),"HaveRequirementItems",new[]{typeof(Recipe),typeof(bool),typeof(int),typeof(int)},nameof(HaveCraft));
    Patch(h,typeof(Player),"HaveRequirements",new[]{typeof(Piece),typeof(Player.RequirementMode)},nameof(HaveBuild));
@@ -66,7 +66,6 @@ namespace RunicStorageNetwork {
   static void RecipeSelected(InventoryGui __instance,Player player)=>CraftPreparation.Selection(__instance,player);
   static void RecipeUpdated(InventoryGui __instance)=>CraftPreparation.Button(__instance);
   static void CraftCancelled(){CraftPreparation.Cancel();if(Actions.Waiting?.Op.Build==false)Actions.Cancel();}
-  static bool Build(Player __instance,Piece piece,ref bool __result){if(ContentSettings.AllowsPiece(piece)&&Actions.Build(__instance,piece))return true;__result=false;return false;}
   static bool Consume(Player __instance)=>Actions.Active==null||Actions.Active.Player!=__instance;
   static bool HaveCraft(Player __instance,Recipe piece,bool discover,int qualityLevel,int amount,ref bool __result){if(discover)return true;if(!Actions.HaveCraft(__instance,piece,qualityLevel,amount,out bool result))return true;__result=result;return false;}
   static bool HaveBuild(Player __instance,Piece piece,Player.RequirementMode mode,ref bool __result){
@@ -112,15 +111,6 @@ namespace RunicStorageNetwork {
     }yield return i;
    }
    if(added!=4||removed!=1)throw new InvalidOperationException("DoCrafting IL changed: AddItem="+added+", RemoveUpgrade="+removed);
-  }
-  static IEnumerable<CodeInstruction> BuildIL(IEnumerable<CodeInstruction> instructions){int count=0;foreach(var i in instructions){if(i.operand is MethodInfo m&&m.DeclaringType==typeof(UnityEngine.Object)&&m.Name=="Instantiate"&&m.IsGenericMethod&&m.GetGenericArguments()[0]==typeof(GameObject)&&m.GetParameters().Length==3){var actor=new CodeInstruction(OpCodes.Ldarg_0);actor.labels.AddRange(i.labels);i.labels.Clear();yield return actor;i.opcode=OpCodes.Call;i.operand=AccessTools.Method(typeof(Patches),nameof(Spawn));count++;}yield return i;}if(count!=1)throw new InvalidOperationException("PlacePiece IL changed");}
-  static GameObject Spawn(GameObject prefab,Vector3 position,Quaternion rotation,Player player){
-   var go=UnityEngine.Object.Instantiate(prefab,position,rotation);if(Actions.Active?.Op.Build==true&&go)Actions.Active.Output=true;
-   if(go&&go.GetComponent<Relay>()&&R.Valid(R.View(go.GetComponent<Piece>()))){
-    bool free=player&&(player.NoCostCheat()||R.Get<bool>(player,"m_noPlacementCost"))||ZoneSystem.instance.GetGlobalKey(prefab.GetComponent<Piece>().FreeBuildKey());
-    R.View(go.GetComponent<Piece>()).GetZDO().Set("rsn_free_relay",free);
-   }
-   return go;
   }
   static bool RemoveUpgrade(Inventory inventory,ItemDrop.ItemData item){if(Actions.Active?.Upgrade==item)return true;return inventory.RemoveItem(item);}
   static void RemoveAlternate(Inventory inventory,string name,int amount,int quality,bool worldLevel){if(Actions.Active!=null)return;inventory.RemoveItem(name,amount,quality,worldLevel);}
