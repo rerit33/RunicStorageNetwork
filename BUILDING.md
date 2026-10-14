@@ -47,7 +47,9 @@ These tests require only the Unity compiler/reference assemblies and Windows, wi
 
 They cover resource planning, network graphs, reservations, recovery, localization, resource counts, container and build-tool allow/deny rules, and recipe name resolution. They do not simulate Valheim networking, Harmony patches or the game UI; multiplayer changes also need in-game testing.
 
-The same command also runs `BuildToolRuntimeTests.exe`. It compiles the production build-tool policy, planner and selected build/menu methods against game stand-ins to check shared menus, late registration, serving-tray supply and inventory-only fallback. It does not load the game or apply Harmony patches.
+The same command also runs `BuildToolRuntimeTests.exe`. It compiles the production build-tool policy, planner, `FastPathCore` and selected build/menu methods against game stand-ins to check shared menus, late registration, serving-tray supply and inventory-only fallback. It does not load the game or apply Harmony patches.
+
+`FastPathRuntimeTests.exe` compiles the production `FastPathCore` against game stand-ins. It checks source eligibility, exact material removal, placement, restoration and retries, ownership and inventory mismatches, hold release, world changes and build-entry decisions. It does not cover the Unity glue in `src/FastPath.cs`, Harmony patches or multiplayer.
 
 It also runs `RecipeRuntimeTests.exe` against the production recipe index and transaction requirement-selection methods. This covers live recipe changes, duplicate names, different registration orders across peers, stale operations and rate-limited diagnostics. These tests use stand-ins; they do not establish compatibility with a mod's custom crafting callbacks.
 
@@ -62,6 +64,14 @@ The command also runs `StorageIndexRuntimeTests.exe`, `CraftInspectionRuntimeTes
 Interact with the Storage Codex inside core/relay supply coverage to open storage; interacting with a core renames the network. For withdrawals, the operation `Station` field identifies the placed Storage Codex while `Core` identifies its storage network. The coordinator validates the stand's synchronized record, creator, distance, ward and supply coverage; it does not require a loaded stand instance on the host.
 
 `TerminalRuntimeTests.exe` exercises production delivery/receipt handlers and the extracted coordinator access-point check against stand-ins: custom item data, quantity/quality checks, duplicate messages, cancellation, stand destruction, lost coverage, wards, different open stands, full inventories and partial-insertion rollback. These do not verify real multiplayer or item registration.
+
+## Immediate building gameplay checks
+
+Manual validation on a backed-up test world with `Network.OwnerFastPath = true`:
+
+- Have two players build from one chest at the same time, with one using immediate building and the other using normal network payment. Open the chest during a build, then change its owner. Check that no piece is free and no materials are removed twice.
+- Check remaining chest and player materials after both successful and refused placements, then save and reconnect to verify the counts persist.
+- Repeat with Quick Stack, MultiUserChest and AdventureBackpacks enabled. Check that busy chests remain unavailable during a pending refund and become usable again when it ends.
 
 ## Save local paths
 

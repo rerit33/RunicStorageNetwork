@@ -65,6 +65,7 @@ namespace RunicStorageNetwork {
    Shutdown();StorageIndex.Offline=null;CraftInspection.FindContainer=CraftInspection.LoadedContainer;
    var h=patches;patches=null;h?.UnpatchSelf();
   }
+  internal static void InstallPinning(Harmony h)=>Hook(h,typeof(ZNetScene),"RemoveObjects",nameof(PinTransactions),true,args:new[]{typeof(List<ZDO>),typeof(List<ZDO>)});
   static void InstallHooks(Harmony h){
    Hook(h,typeof(ZNetScene),"Awake",nameof(Bootstrap));
    Hook(h,typeof(ZNet),"Start",nameof(WorldLoaded));
@@ -78,7 +79,6 @@ namespace RunicStorageNetwork {
    Hook(h,typeof(ZDO),"SetOwnerInternal",nameof(OwnershipChanged));
    Hook(h,typeof(ZNetView),"Awake",nameof(Loaded));
    Hook(h,typeof(ZNetScene),"RemoveObjects",nameof(UnloadIL),args:new[]{typeof(List<ZDO>),typeof(List<ZDO>)},transpiler:true);
-   Hook(h,typeof(ZNetScene),"RemoveObjects",nameof(PinTransactions),true);
    Hook(h,typeof(Container),"Load",nameof(LoadReplica),true,Type.EmptyTypes);
    Hook(h,typeof(Container),"Save",nameof(SaveReplica),true,Type.EmptyTypes);
    StorageIndex.Offline=new StorageIndex.UnloadedMode(()=>Enabled,()=>Demand,SourceReady,ReadFailure);
@@ -189,10 +189,9 @@ namespace RunicStorageNetwork {
    if(nodes.ContainsKey(id)||chests.ContainsKey(id)||__instance.GetComponent<Container>())Topology.Dirty();
   }
   static void PinTransactions(List<ZDO> currentNearObjects){
-   if(!Enabled||Transport.Leases.Count==0)return;
-   // A real instance which already holds a lease must live until release; only
-   // the few participating chests are pinned, never the surrounding area.
-   foreach(var lease in Transport.Leases.Values)if(lease.Container&&!IsReplica(lease.Container)&&R.Valid(R.View(lease.Container))){var z=R.View(lease.Container).GetZDO();if(!currentNearObjects.Contains(z))currentNearObjects.Add(z);}
+   // Pending refunds need their live chest even when unloaded networks are disabled.
+   foreach(var data in FastPath.HeldZDOs)if(data!=null&&data.IsValid()&&!currentNearObjects.Contains(data))currentNearObjects.Add(data);
+   if(Enabled)foreach(var lease in Transport.Leases.Values)if(lease.Container&&!IsReplica(lease.Container)&&R.Valid(R.View(lease.Container))){var z=R.View(lease.Container).GetZDO();if(!currentNearObjects.Contains(z))currentNearObjects.Add(z);}
   }
   static void Enqueue(ZDOID id){if(!replicas.ContainsKey(id)&&queued.Add(id))queue.Enqueue(id);}
   internal static bool Prepare(){

@@ -4,6 +4,7 @@
 
 - Fixed distant chest resources disappearing from the network after saving with Valheim 1.0.20. Thanks to @mhaslinsky.
 - Added the `GatewayCarriesAllItems` setting, disabled by default, to allow ore, metal bars and other portal-restricted items through Runic Gateways after restarting the game/server. Thanks to @mhaslinsky.
+- Added the administrator-only `Network.OwnerFastPath` setting (on by default). Builds that take materials from chests loaded and owned by the building player's game now finish immediately.
 
 ## 1.0.1
 

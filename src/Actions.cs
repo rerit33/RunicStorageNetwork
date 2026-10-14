@@ -59,7 +59,11 @@ namespace RunicStorageNetwork {
   }
 
   internal static bool Build(Player p,Piece piece){
-   if(Active!=null||!BuildPiece(p,piece))return true;if(Waiting!=null)return false;
+   var entry=FastPathCore.BuildEntry(FastPath.Blocks(p),FastPath.Running,FastPath.Owns(p),FastPath.NativeReady(p));
+   if(entry==FastPathBuildEntry.Native)return FastPath.ConsumeNativePlacement(p);
+   if(entry==FastPathBuildEntry.Refuse)return false;
+   if(Active!=null)return true;
+   if(!BuildPiece(p,piece))return true;if(Waiting!=null)return false;
    if(LocalBuildMaterials(p,piece,Player.RequirementMode.CanBuild))return true;
    var core=Context(p,false);
    if(!core||p.NoCostCheat()||R.Get<bool>(p,"m_noPlacementCost")||ZoneSystem.instance.GetGlobalKey(piece.FreeBuildKey()))return true;
@@ -71,7 +75,9 @@ namespace RunicStorageNetwork {
    // and other mods' placement checks. Do not run those callbacks a second time.
    if(R.Get<object>(p,"m_placementStatus").ToString()!="Valid")return true;
    var ghost=R.Get<GameObject>(p,"m_placementGhost");if(!ghost)return true;
-   Start(new Pending{Op=op,Player=p,Piece=piece,Tool=(ItemDrop.ItemData)R.Call(p,"GetRightItem",Type.EmptyTypes),Position=ghost.transform.position,Rotation=ghost.transform.rotation},plan);return false;
+   var pending=new Pending{Op=op,Player=p,Piece=piece,Tool=(ItemDrop.ItemData)R.Call(p,"GetRightItem",Type.EmptyTypes),Position=ghost.transform.position,Rotation=ghost.transform.rotation};
+   if(FastPath.TryBuild(pending,core,plan))return false;
+   Start(pending,plan);return false;
   }
   internal static Operation Create(Player p,Core core,bool build,string target,int quality,int multiplier){return new Operation{Id=System.Guid.NewGuid().ToString("N"),Target=target,Build=build,Quality=quality,Multiplier=multiplier,Actor=p.GetZDOID(),Station=build?ZDOID.None:R.View(p.GetCurrentCraftingStation()).GetZDO().m_uid,Core=core.Id,Network=core.GetComponent<NetworkMember>().SavedNetwork,Peer=ZNet.GetUID(),PlayerId=p.GetPlayerID()};}
   internal static bool Propose(Pending pending,List<Debit> preview){
@@ -181,7 +187,7 @@ namespace RunicStorageNetwork {
    }
    Outcomes.Record(id,success,success?"result observed":failure);if(success){Waiting=null;Stockroom.ClearObservations();CraftInspection.Clear();CraftOverview.Rescan();Topology.Dirty();}Transport.Instance.Result(id,success,success?"result observed":failure);
   }
-  static void FinishBuild(Pending p){
+  internal static void FinishBuild(Pending p){
    R.Set(p.Player,"m_lastToolUseTime",Time.time);p.Player.UseStamina((float)R.Call(p.Player,"GetBuildStamina",Type.EmptyTypes));
    var table=R.Get<PieceTable>(p.Player,"m_buildPieces");
    if(table.m_skill!=Skills.SkillType.None){int debt=R.Get<int>(p.Player,"m_buildRemoveDebt");if(debt>0)R.Set(p.Player,"m_buildRemoveDebt",debt-1);else p.Player.RaiseSkill(table.m_skill);}

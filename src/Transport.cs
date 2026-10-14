@@ -104,10 +104,10 @@ namespace RunicStorageNetwork {
   internal static long Server=>ZNet.instance.IsServer()?ZNet.GetUID():ZNet.instance.GetServerPeer()?.m_uid??0;
   void Awake(){Instance=this;}
   void Update(){
-   if(world!=ZNet.instance){if(world||rpc!=null){foreach(var inventory in Leases.Keys)Integrations.Block(inventory,false);jobs.Clear();queued.Clear();releasing.Clear();terminal.Clear();awaitingRelease.Clear();sourceGate.Clear();Leases.Clear();ended.Clear();releasedLeases.Clear();Actions.Clear();}world=ZNet.instance;rpc=null;}
+   if(world!=ZNet.instance){if(world||rpc!=null){FastPath.ClearWorld();foreach(var inventory in Leases.Keys)Integrations.Block(inventory,false);jobs.Clear();queued.Clear();releasing.Clear();terminal.Clear();awaitingRelease.Clear();sourceGate.Clear();Leases.Clear();ended.Clear();releasedLeases.Clear();Actions.Clear();}world=ZNet.instance;rpc=null;}
    if(!world||ZRoutedRpc.instance==null)return;
    if(rpc!=ZRoutedRpc.instance){rpc=ZRoutedRpc.instance;Register();}
-   Pump();Dispatch();CraftOverview.Tick();CraftInspection.Tick();CraftPreparation.Tick();TerminalTransfer.Tick();
+   Pump();Dispatch();CraftOverview.Tick();CraftInspection.Tick();CraftPreparation.Tick();TerminalTransfer.Tick();FastPath.Tick();
    if(Time.unscaledTime<next)return;next=Time.unscaledTime+1;
    foreach(var j in jobs.Values.ToArray()){
     if(j.Op.Quote&&j.Decision.Phase==Phase.Prepared&&j.Plan!=null&&Time.unscaledTime>=j.QuoteUntil){Abort(j,"offer expired",false);continue;}
@@ -356,8 +356,8 @@ namespace RunicStorageNetwork {
   void Reject(Operation op,string reason){ended.Add(op.Id);terminal[op.Id]=new Refusal{Op=op,Reason=reason};Plugin.Debug(op.Id+" refused: "+reason+" peer="+op.Peer+" actor="+R.Key(op.Actor)+" core="+R.Key(op.Core)+" network="+op.Network+" target="+op.Target);SendRefusal(op,reason);}
   void SendRefusal(Operation op,string reason){var q=Header(op.Id);q.Write(reason);Send(op.Peer,"refused",q);}
   void Refused(long sender,ZPackage p){if(sender!=Server)return;string id=p.ReadString(),why=p.ReadString();CraftPreparation.Refused(id,why);Actions.Refused(id,why);TerminalTransfer.Refused(id,why);}
-  internal static bool Locked(Inventory inv)=>InternalMutation==0&&inv!=null&&(Leases.ContainsKey(inv)||Actions.Locked(inv)||CraftPreparation.Locked(inv)||(ExtraInventoryLock?.Invoke(inv)??false));
-  internal static bool LockedItem(ItemDrop.ItemData item)=>InternalMutation==0&&(Leases.Keys.Any(i=>i.ContainsItem(item))||(Actions.Waiting?.Player&&Actions.Waiting.Player.GetInventory().ContainsItem(item))||CraftPreparation.LockedItem(item)||(ExtraItemLock?.Invoke(item)??false));
-  internal static bool Reserved(ZDO zdo,string except=null)=>zdo!=null&&((zdo.GetString("rsn_lease","")!=""&&zdo.GetString("rsn_lease","")!=except)||(Instance!=null&&ZNet.instance&&ZNet.instance.IsServer()&&Instance.sourceGate.Held(R.Key(zdo.m_uid),except)));
+  internal static bool Locked(Inventory inv)=>InternalMutation==0&&inv!=null&&(Leases.ContainsKey(inv)||FastPath.Locked(inv)||Actions.Locked(inv)||CraftPreparation.Locked(inv)||(ExtraInventoryLock?.Invoke(inv)??false));
+  internal static bool LockedItem(ItemDrop.ItemData item)=>InternalMutation==0&&(Leases.Keys.Any(i=>i.ContainsItem(item))||FastPath.LockedItem(item)||(Actions.Waiting?.Player&&Actions.Waiting.Player.GetInventory().ContainsItem(item))||CraftPreparation.LockedItem(item)||(ExtraItemLock?.Invoke(item)??false));
+  internal static bool Reserved(ZDO zdo,string except=null)=>zdo!=null&&(FastPath.Holds(zdo)||(zdo.GetString("rsn_lease","")!=""&&zdo.GetString("rsn_lease","")!=except)||(Instance!=null&&ZNet.instance&&ZNet.instance.IsServer()&&Instance.sourceGate.Held(R.Key(zdo.m_uid),except)));
  }
 }

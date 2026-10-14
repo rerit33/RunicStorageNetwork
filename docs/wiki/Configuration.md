@@ -54,6 +54,7 @@ All distances are in metres. Larger radii can include more nodes and chests and 
 | --- | --- | --- | --- |
 | `SupplyEnabled` | `true` | `true` / `false` | Enables network resource supply. Disabling it keeps the build pieces available, but stops new API payments as well. |
 | `GatewayCarriesAllItems` | `false` | `true` / `false` | Removes ordinary portal item restrictions from Runic Gateways, allowing ore and metal bars. Requires a game/server restart. Missing items and tool tier 1000+ items remain blocked. |
+| `OwnerFastPath` | `true` | `true` / `false` | Builds immediately when every needed chest is loaded and owned by the building player's game. Set `false` to use normal network building. |
 | `StorageRadius` | `20` | `1`–`100` | Core-to-storage connection radius. |
 | `SupplyRadius` | `20` | `1`–`100` | Supply radius around a core for crafting, building and storage access. |
 | `RelayLinkRange` | `50` | `1`–`100` | Maximum distance for links between network nodes. |
@@ -64,6 +65,9 @@ All distances are in metres. Larger radii can include more nodes and chests and 
 The Storage Codex uses the coverage of its core or relay; it does not extend it. No recipe changes are needed when changing ranges.
 
 `GatewayCarriesAllItems` is captured when the game or dedicated server starts. Editing it during play takes effect only after a restart. Connecting clients automatically receive the server's active rule, including players who join after the config has been edited for the next restart. The world's normal portal modifier still applies when this setting is `false`.
+`OwnerFastPath` is administrator-only, on by default and synchronized by the server. It removes the required materials and finishes the build immediately, with normal build costs charged once. Builds use normal network payment if a needed chest is busy, reserved, unloaded, owned by another player's game or unavailable through a gateway. Pending material refunds or chest release block further builds by this player until they finish.
+
+If a chest changes owner or an inventory changes in a way that prevents a refund, RSN releases the chest and logs a warning about the materials it could not restore. Leaving the world during a pending refund also logs the remaining materials before releasing the chests.
 
 ## Containers
 
