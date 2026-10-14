@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added the administrator-only `Network.OwnerFastPath` setting (on by default). Builds that take materials from chests loaded and owned by the building player's game now finish immediately.
+
 ## 1.0.1
 
 - Fixed a building conflict with ValheimRAFT that could prevent new pieces from attaching to a ship. Improved compatibility with other mods that customize building placement.

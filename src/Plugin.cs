@@ -19,7 +19,7 @@ namespace RunicStorageNetwork {
  public sealed class Plugin:BaseUnityPlugin {
   public const string Guid="local.runicstoragenetwork";
   internal static ManualLogSource Log;
-  internal static ConfigEntry<bool> Supply,DebugLogging,ExperimentalUnloadedNetworks;
+  internal static ConfigEntry<bool> Supply,DebugLogging,ExperimentalUnloadedNetworks,OwnerFastPath;
   internal static ConfigEntry<float> StorageRadius,SupplyRadius,Rescan,RelayLink,RelayStorage,RelaySupply;
   internal static ConfigEntry<string> AllowedContainers,DeniedContainers,DeniedComponents;
   internal static ConfigEntry<string> AllowedBuildTools,DeniedBuildTools,DeniedPieceComponents;
@@ -40,6 +40,7 @@ namespace RunicStorageNetwork {
   void Awake(){
    Log=Logger;
    Supply=Config.Bind("Network","SupplyEnabled",true,new ConfigDescription("Enable supply; registered building remains available.",null,new ConfigurationManagerAttributes{IsAdminOnly=true}));
+   OwnerFastPath=Config.Bind("Network","OwnerFastPath",true,new ConfigDescription("Build immediately from chests loaded and owned by your game.",null,new ConfigurationManagerAttributes{IsAdminOnly=true}));
    ExperimentalUnloadedNetworks=Config.Bind("Experimental","ExperimentalUnloadedNetworks",true,"Allow networks and eligible storage to work outside the player's loaded area. Enabled by default for new configurations from 1.0; existing saved values are kept. Set false to disable. Required for Runic Gateway links and the mod API. For multiplayer, use the same setting on the server and all clients with the same mod version. Requires a full restart after changing. / Работа сети вне области загрузки игрока. С версии 1.0 включено по умолчанию в новых конфигурациях; сохранённое ранее значение не меняется. Для отключения установите false. Требуется для связей Рунического моста и API. Для мультиплеера используйте одинаковое значение на сервере и у всех игроков с одинаковой версией мода. После изменения полностью перезапустите игру или выделенный сервер.");
    ContentSettings.Bind(Config);
    StorageRadius=Number("StorageRadius",20,1,100);SupplyRadius=Number("SupplyRadius",20,1,100);Rescan=Number("RescanIntervalSeconds",2,0.5f,30);

@@ -11,6 +11,7 @@ using RunicStorageNetwork.Logic;
 namespace RunicStorageNetwork {
  internal static partial class Patches {
   internal static void Install(Harmony h){
+   UnloadedNetworks.InstallPinning(h);
    Patch(h,typeof(Humanoid),"SetupEquipment",Type.EmptyTypes,null,nameof(BuilderEquipped));
    Patch(h,typeof(ItemDrop.ItemData),"GetTooltip",new[]{typeof(ItemDrop.ItemData),typeof(int),typeof(bool),typeof(float),typeof(int),typeof(bool)},null,nameof(BuilderTooltip));
    Patch(h,typeof(TextInput),"RequestText",new[]{typeof(TextReceiver),typeof(string),typeof(int)},nameof(TextPromptBefore),nameof(TextPromptAfter));
@@ -98,7 +99,7 @@ namespace RunicStorageNetwork {
    string response=__originalMethod.Name.Replace("Request"," ").Contains("Open")?"RPC_OpenResponse":__originalMethod.Name.Contains("Stack")?"RPC_StackResponse":"RPC_TakeAllResponse";
    R.View(__instance).InvokeRPC(uid,response,false);return false;
   }
-  static bool Owner(ZDO __instance,long uid)=>Transport.ExtraOwnerRule?.Invoke(__instance,uid)??(!UnloadedNetworks.KeepOwner(__instance,uid)&&(!Transport.Reserved(__instance)||__instance.GetOwner()==uid));
+  static bool Owner(ZDO __instance,long uid){if(FastPath.Holds(__instance))return __instance.GetOwner()==uid;return Transport.ExtraOwnerRule?.Invoke(__instance,uid)??(!UnloadedNetworks.KeepOwner(__instance,uid)&&(!Transport.Reserved(__instance)||__instance.GetOwner()==uid));}
   static bool RemoveBuilding(WearNTear __instance)=>!Transport.Reserved(R.View(__instance)?.GetZDO());
   static bool RelayRefund(Piece __instance)=>!__instance.GetComponent<Relay>()||!R.Valid(R.View(__instance))||!R.View(__instance).GetZDO().GetBool("rsn_free_relay",false);
   static IEnumerable<CodeInstruction> CraftIL(IEnumerable<CodeInstruction> instructions){

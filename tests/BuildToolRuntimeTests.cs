@@ -60,6 +60,17 @@ namespace RunicStorageNetwork {
  }
  class Core:UnityEngine.Object {}
  class Operation {public int Station;public List<Need> Needs;public bool Validate(out object a,out object b,out string c){a=b=c=null;return true;}}
+ static class FastPath {
+  internal static bool Handled;
+  internal static bool Running,BlocksResult,OwnsResult,NativeReadyResult,ConsumeNativeResult;
+  internal static int ConsumeCalls;
+  internal static Actions.Pending LastPending;
+  internal static bool Blocks(Player player)=>BlocksResult;
+  internal static bool Owns(Player player)=>OwnsResult;
+  internal static bool NativeReady(Player player)=>NativeReadyResult;
+  internal static bool ConsumeNativePlacement(Player player){ConsumeCalls++;return ConsumeNativeResult;}
+  internal static bool TryBuild(Actions.Pending pending,Core core,List<Debit> preview){LastPending=pending;return Handled;}
+ }
  static class Stockroom {
   public static List<Stock> Stock=new List<Stock>();
   public static List<Need> Requirements(Piece.Requirement[] req,int quality,int mult)=>req.Where(r=>r.m_resItem&&r.m_amount>0).Select(r=>new Need(r.m_resItem.name,r.m_amount*mult)).ToList();
@@ -100,7 +111,10 @@ static class BuildToolRuntimeTests {
   Test("inventory-only menu check delegates station and DLC rules to vanilla",()=>{bool result=false;Actions.ContextCalls=0;Assert(Patches.Check(p,wall,Player.RequirementMode.CanBuild,ref result)&&Actions.ContextCalls==0&&!result);});
   Test("discovery remains native even without resources",()=>{p.Inventory.Counts.Clear();bool result=false;Assert(Patches.Check(p,wall,Player.RequirementMode.IsKnown,ref result));});
   Test("partial local supply distinguishes almost-build from build",()=>{p.Inventory.Counts["$item_wood"]=1;Assert(Actions.LocalBuildMaterials(p,wall,Player.RequirementMode.CanAlmostBuild)&&!Actions.LocalBuildMaterials(p,wall,Player.RequirementMode.CanBuild));});
-  Test("same missing materials enable menu and queue network payment",()=>{Actions.Supply=new Core();Stockroom.Stock=new List<Stock>{new Stock("player","Wood",1,1),new Stock("chest","Wood",1,9)};bool result=false;Assert(!Patches.Check(p,wall,Player.RequirementMode.CanBuild,ref result)&&result);Assert(!Actions.Build(p,wall)&&Actions.Started==1);Actions.Waiting=null;});
+  Test("same missing materials enable menu and queue network payment",()=>{Actions.Supply=new Core();Stockroom.Stock=new List<Stock>{new Stock("player","Wood",1,1),new Stock("chest","Wood",1,9)};bool result=false;Assert(!Patches.Check(p,wall,Player.RequirementMode.CanBuild,ref result)&&result);Assert(!Actions.Build(p,wall)&&Actions.Started==1&&ReferenceEquals(Actions.Waiting,FastPath.LastPending));Actions.Waiting=null;FastPath.LastPending=null;});
+  Test("handled fast build suppresses native entry without queuing payment",()=>{int started=Actions.Started;FastPath.Handled=true;try{Assert(!Actions.Build(p,wall)&&Actions.Started==started&&Actions.Waiting==null&&FastPath.LastPending.Player==p&&FastPath.LastPending.Piece==wall&&FastPath.LastPending.Tool==hammer);}finally{FastPath.Handled=false;FastPath.LastPending=null;}});
+  Test("native fast build entry returns the consume result",()=>{int started=Actions.Started,contexts=Actions.ContextCalls;FastPath.Running=FastPath.OwnsResult=FastPath.NativeReadyResult=true;try{foreach(bool consume in new[]{true,false}){FastPath.ConsumeNativeResult=consume;Assert(Actions.Build(p,wall)==consume);}Assert(FastPath.ConsumeCalls==2&&Actions.Started==started&&Actions.ContextCalls==contexts&&Actions.Waiting==null);}finally{FastPath.Handled=FastPath.Running=FastPath.BlocksResult=FastPath.OwnsResult=FastPath.NativeReadyResult=FastPath.ConsumeNativeResult=false;FastPath.ConsumeCalls=0;}});
+  Test("refused fast build entry returns false without consuming",()=>{int started=Actions.Started,contexts=Actions.ContextCalls;FastPath.Running=FastPath.BlocksResult=FastPath.OwnsResult=FastPath.NativeReadyResult=FastPath.ConsumeNativeResult=true;try{Assert(!Actions.Build(p,wall)&&FastPath.ConsumeCalls==0&&Actions.Started==started&&Actions.ContextCalls==contexts&&Actions.Waiting==null);}finally{FastPath.Handled=FastPath.Running=FastPath.BlocksResult=FastPath.OwnsResult=FastPath.NativeReadyResult=FastPath.ConsumeNativeResult=false;FastPath.ConsumeCalls=0;}});
   Test("insufficient combined stock cannot start payment",()=>{Stockroom.Stock[1].Amount=8;bool result=true;Assert(!Patches.Check(p,wall,Player.RequirementMode.CanBuild,ref result)&&!result);Assert(!Actions.Build(p,wall)&&Actions.Started==1);});
   Test("tools without durability can complete network placement",()=>{hammer.m_durability=0;hammer.m_shared.m_useDurability=false;Assert(Actions.BuildToolUsable(p,hammer));hammer.m_shared.m_useDurability=true;Assert(!Actions.BuildToolUsable(p,hammer));hammer.m_durability=10;Assert(Actions.BuildToolUsable(p,hammer));});
   Test("tool stamina requirement still applies",()=>{hammer.m_shared.m_attack.m_attackStamina=10;p.Stamina=0;Assert(!Actions.BuildToolUsable(p,hammer));});
