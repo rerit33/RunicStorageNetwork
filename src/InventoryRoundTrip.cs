@@ -36,7 +36,7 @@ namespace RunicStorageNetwork.Logic {
   }
   internal static List<Item> Read(byte[] bytes,Func<string,int> prefabHash){
    using(var stream=new MemoryStream(bytes,false))using(var r=new BinaryReader(stream,new UTF8Encoding(false,true))){
-    int version=r.ReadInt32();if(version<100||version>109)throw new InvalidDataException("version "+version);
+    int version=r.ReadInt32();if(version<100||version>110)throw new InvalidDataException("version "+version);
     bool compact=version>=108;int count=compact?r.ReadUInt16():r.ReadInt32();
     if(count<0||count>65535||count>stream.Length-stream.Position)throw new InvalidDataException("item count");
     var items=new List<Item>(count);
@@ -50,7 +50,7 @@ namespace RunicStorageNetwork.Logic {
       if((flags&32)!=0){item.Crafter=r.ReadInt64();item.Name=r.ReadString();}
       if((flags&64)!=0)item.Prefab=r.ReadInt32();
       if((flags&128)!=0){int n=r.ReadByte();if((n&128)!=0)n=((n&127)<<8)|r.ReadByte();Custom(r,item,n);}
-      if(version>=109){int flags2=r.ReadByte();if((flags2&~1)!=0)throw new InvalidDataException("unknown item flags");item.Cheated=(flags2&1)!=0;}
+      if(version>=109){int flags2=r.ReadByte();if((flags2&~1)!=0)throw new InvalidDataException("unknown item flags");item.Cheated=version>=110&&(flags2&1)!=0;}
      }else {
       string prefab=r.ReadString();if(prefab.Length==0)throw new InvalidDataException("missing prefab");item.Prefab=prefabHash(prefab);
       item.Stack=r.ReadInt32();item.LoadedDurability=r.ReadSingle();item.X=r.ReadInt32();item.Y=r.ReadInt32();item.Equipped=r.ReadBoolean();
