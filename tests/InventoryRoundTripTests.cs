@@ -51,6 +51,8 @@ static class InventoryRoundTripTests {
   Test("truncated records and malformed counts are refused",()=>{var a=Encode(110,new Record());Check(!Same(a.Take(a.Length-1).ToArray(),a),"truncated record accepted");Check(!Same(new byte[]{107,0,0,0,255,255,255,127},a),"invalid count accepted");});
   Test("version 110 inventory is read with its cheated flag",()=>{var r=new Record();var items=InventoryRoundTrip.Read(Encode(110,r),Hash);Check(items.Count==1&&items[0].Cheated&&items[0].Prefab==Hash("Wood"),"110 record misread");});
   Test("version 109 cheated flag is ignored as the game does",()=>{var r=new Record();var items=InventoryRoundTrip.Read(Encode(109,r),Hash);Check(items.Count==1&&!items[0].Cheated,"109 cheated flag honored");var clean=new Record{Cheated=false};Check(Same(Encode(109,r),Encode(110,clean)),"109 save rejected against the 110 writer");Check(!Same(Encode(109,r),Encode(110,r)),"109 flag treated as kept");});
+  Test("invalid item diagnostic identifies record and fields without custom data",()=>{var r=new Record{X=2,Y=3,Quality=0};string message="";try{InventoryRoundTrip.Read(Encode(110,r),Hash);}catch(InvalidDataException e){message=e.Message;}Check(message.Contains("record 0")&&message.Contains("version 110")&&message.Contains("slot=2,3")&&message.Contains("quality=0")&&!message.Contains("mod:data"),"item diagnostic incomplete or leaks metadata");});
+  Test("future format diagnostic includes supported versions",()=>{string message="";try{InventoryRoundTrip.Read(Encode(111,new Record()),Hash);}catch(InvalidDataException e){message=e.Message;}Check(message.Contains("version 111")&&message.Contains("100-110"),"version diagnostic incomplete");});
   return passed;
  }
 }

@@ -36,7 +36,7 @@ namespace RunicStorageNetwork.Logic {
   }
   internal static List<Item> Read(byte[] bytes,Func<string,int> prefabHash){
    using(var stream=new MemoryStream(bytes,false))using(var r=new BinaryReader(stream,new UTF8Encoding(false,true))){
-    int version=r.ReadInt32();if(version<100||version>110)throw new InvalidDataException("version "+version);
+    int version=r.ReadInt32();if(version<100||version>110)throw new InvalidDataException("unsupported inventory version "+version+" (supported: 100-110)");
     bool compact=version>=108;int count=compact?r.ReadUInt16():r.ReadInt32();
     if(count<0||count>65535||count>stream.Length-stream.Position)throw new InvalidDataException("item count");
     var items=new List<Item>(count);
@@ -58,7 +58,7 @@ namespace RunicStorageNetwork.Logic {
       if(version>=103){item.Crafter=r.ReadInt64();item.Name=r.ReadString();}if(version>=104)Custom(r,item,r.ReadInt32());
       if(version>=105)item.World=r.ReadInt32();if(version>=106)item.PickedUp=r.ReadBoolean();if(version==107)item.Cheated=r.ReadBoolean();
      }
-     if(item.Prefab==0||item.Stack<1||item.Quality<1||float.IsNaN(item.LoadedDurability)||float.IsInfinity(item.LoadedDurability))throw new InvalidDataException("invalid item");
+     if(item.Prefab==0||item.Stack<1||item.Quality<1||float.IsNaN(item.LoadedDurability)||float.IsInfinity(item.LoadedDurability))throw new InvalidDataException("invalid item record "+i+" in inventory version "+version+"; prefab="+item.Prefab+" slot="+item.X+","+item.Y+" stack="+item.Stack+" quality="+item.Quality+" durability="+item.LoadedDurability);
      items.Add(item);
     }
     if(stream.Position!=stream.Length)throw new InvalidDataException("unrecognized trailing data");return items;

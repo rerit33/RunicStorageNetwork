@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Fixed distant chest resources disappearing from the network after saving with Valheim 1.0.20. Thanks to @mhaslinsky.
+
 ## 1.0.1
 
 - Fixed a building conflict with ValheimRAFT that could prevent new pieces from attaching to a ship. Improved compatibility with other mods that customize building placement.
