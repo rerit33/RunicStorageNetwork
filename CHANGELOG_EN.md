@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.2
 
 - Fixed distant chest resources disappearing from the network after saving with Valheim 1.0.20. Thanks to @mhaslinsky.
 - Added the `GatewayCarriesAllItems` setting, disabled by default, to allow ore, metal bars and other portal-restricted items through Runic Gateways after restarting the game/server. Thanks to @mhaslinsky.
