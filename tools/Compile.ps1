@@ -212,4 +212,14 @@ if($Tests){
  if($LASTEXITCODE -ne 0){throw 'Content runtime test compilation failed'}
  & $contentProbe
  if($LASTEXITCODE -ne 0){throw 'Content runtime tests failed'}
+ $gatewaySettingsProbe=Join-Path $Output 'GatewaySettingsRuntimeTests.exe'
+ $gatewaySettingsRsp=Join-Path $Output 'GatewaySettingsRuntimeTests.rsp'
+ $gatewaySettingsLines=@('/nologo','/nostdlib+','/langversion:9','/target:exe','/define:GATEWAY_SETTINGS_RUNTIME_TESTS',('/out:"'+$gatewaySettingsProbe+'"'))
+ $gatewaySettingsLines+=@($refs | Select-Object -Unique | ForEach-Object {'/reference:"'+$_+'"'})
+ $gatewaySettingsLines+=@('src\GatewaySettings.cs','tests\GatewaySettingsRuntimeTests.cs' | ForEach-Object {'"'+(Join-Path $root $_)+'"'})
+ [IO.File]::WriteAllLines($gatewaySettingsRsp,$gatewaySettingsLines)
+ & "$editor\NetCoreRuntime\dotnet.exe" "$editor\DotNetSdkRoslyn\csc.dll" "@$gatewaySettingsRsp"
+ if($LASTEXITCODE -ne 0){throw 'Gateway settings runtime test compilation failed'}
+ & $gatewaySettingsProbe
+ if($LASTEXITCODE -ne 0){throw 'Gateway settings runtime tests failed'}
 }

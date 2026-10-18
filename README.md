@@ -42,7 +42,7 @@ Bridges distant sections of the same network. Enable experimental distant storag
 
 Exactly two gateways may share a link name. A third disables that pair until the names are corrected. Gateways keep their network binding and cannot join two independent networks; dismantle and rebuild a gateway to bind it to another core.
 
-Only items allowed through ordinary portals can cross the distant link, including the world's portal setting. Local materials stay usable: iron stored at an outpost can be used there, but iron at the main base cannot cross the gateway under normal portal rules. An ordinary relay path between the two sides also allows those materials. Gateways do not teleport players.
+By default, only items allowed through ordinary portals can cross the distant link, including the world's portal setting. Set `Network.GatewayCarriesAllItems = true` and restart the game/server to allow ore, metal bars and other portal-restricted items through gateways. Local materials stay usable: iron stored at an outpost can be used there, but iron at the main base cannot cross the gateway under normal portal rules. An ordinary relay path between the two sides also allows those materials. Gateways do not teleport players.
 
 All four structures are built with the regular hammer near a workbench and require no fuel.
 
@@ -119,6 +119,8 @@ MultiUserChest and Quick Stack Store Sort Trash Restock are optional. The curren
 
 Thanks to [hoxton314](https://github.com/hoxton314) for contributing to the development of Runic Storage Network, including modded-container support and terminal UI scaling.
 
+Thanks to [mhaslinsky](https://github.com/mhaslinsky) for the gateway item-rule setting and Valheim 1.0.20 inventory compatibility fix.
+
 ---
 
 ## Русский
@@ -153,7 +155,7 @@ Runic Storage Network объединяет сундуки базы в сеть �
 
 Одно имя могут использовать ровно два моста. Третий отключает эту пару, пока имена не будут исправлены. Мосты сохраняют привязку к своей сети и не объединяют две независимые сети. Чтобы привязать мост к другому ядру, разберите и постройте его заново.
 
-Через дальнюю связь проходят только предметы, разрешённые для обычных порталов, с учётом настройки мира. Местные материалы остаются доступны: железо на удалённой базе можно использовать там же, но железо основной базы при обычных правилах порталов через мост не пройдёт. Если стороны также соединены обычной цепочкой реле, эти материалы доступны по ней. Мосты не телепортируют игроков.
+По умолчанию через дальнюю связь проходят только предметы, разрешённые для обычных порталов, с учётом настройки мира. Чтобы разрешить перенос руды, металлов и других запрещённых для порталов предметов через мосты, установите `Network.GatewayCarriesAllItems = true` и перезапустите игру/сервер. Местные материалы остаются доступны: железо на удалённой базе можно использовать там же, но железо основной базы при обычных правилах порталов через мост не пройдёт. Если стороны также соединены обычной цепочкой реле, эти материалы доступны по ней. Мосты не телепортируют игроков.
 
 Все четыре постройки устанавливаются обычным молотом рядом с верстаком и не требуют топлива.
 
