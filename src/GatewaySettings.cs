@@ -19,7 +19,11 @@ namespace RunicStorageNetwork {
   internal static void Reset(){active=startup;received=false;}
   static ZPackage Package(){var p=new ZPackage();p.Write(1);p.Write(startup);return p;}
   static IEnumerator Receive(long sender,ZPackage package){
-   if(!ZNet.instance||ZNet.instance.IsServer()||received||ZNet.instance.GetServerPeer()?.m_uid!=sender)yield break;
+   if(!ZNet.instance||ZNet.instance.IsServer()||received)yield break;
+   // GetServerPeer requires a completed login, but Jotunn sends this before
+   // releasing PeerInfo. Inspect the pending server connection instead.
+   var server=ZNet.instance.GetPeers().Find(peer=>peer.m_server);
+   if(server==null||server.m_uid!=0&&server.m_uid!=sender||server.m_uid==0&&ZNet.GetConnectionStatus()!=ZNet.ConnectionStatus.Connecting)yield break;
    int version=package.ReadInt();if(version!=1)throw new InvalidOperationException("Unsupported gateway rule protocol: "+version);
    bool value=package.ReadBool();active=value;received=true;
   }

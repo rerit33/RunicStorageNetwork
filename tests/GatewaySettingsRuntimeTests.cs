@@ -27,10 +27,12 @@ namespace Jotunn.Managers {
   public void AddInitialSynchronization(Jotunn.Entities.CustomRPC rpc,Func<ZPackage> package){Initial=package;}
  }
 }
-public sealed class ZNetPeer {public long m_uid;}
+public sealed class ZNetPeer {public long m_uid;public bool m_server=true;}
 public sealed class ZNet {
+ public enum ConnectionStatus {Connecting,Connected}
+ public static ConnectionStatus Status=ConnectionStatus.Connecting;
  public static ZNet instance;public bool Server;public ZNetPeer Peer=new ZNetPeer{m_uid=42};
- public bool IsServer()=>Server;public ZNetPeer GetServerPeer()=>Peer;public static implicit operator bool(ZNet net)=>net!=null;
+ public bool IsServer()=>Server;public List<ZNetPeer> GetPeers()=>Peer==null?new List<ZNetPeer>():new List<ZNetPeer>{Peer};public static ConnectionStatus GetConnectionStatus()=>Status;public static implicit operator bool(ZNet net)=>net!=null;
 }
 public sealed class ZPackage {
  readonly MemoryStream stream=new MemoryStream();
@@ -40,7 +42,7 @@ public sealed class ZPackage {
 static class GatewaySettingsRuntimeTests {
  static int passed;
  static void Check(bool value,string why){if(!value)throw new Exception(why);}
- static ConfigFile Start(bool? value=null){ZNet.instance=new ZNet();var file=new ConfigFile{Setting=value.HasValue?new ConfigEntry<bool>{Value=value.Value}:null};GatewaySettings.Bind(file);return file;}
+ static ConfigFile Start(bool? value=null){ZNet.instance=new ZNet();ZNet.Status=ZNet.ConnectionStatus.Connecting;var file=new ConfigFile{Setting=value.HasValue?new ConfigEntry<bool>{Value=value.Value}:null};GatewaySettings.Bind(file);return file;}
  static bool Published(){var p=Jotunn.Managers.SynchronizationManager.Instance.Initial();p.Rewind();Check(p.ReadInt()==1,"protocol");return p.ReadBool();}
  static void Receive(bool value,long sender=42,int version=1){var p=new ZPackage();p.Write(version);p.Write(value);p.Rewind();var routine=Jotunn.Managers.NetworkManager.Instance.Rpc.Receive(sender,p);while(routine.MoveNext()){};}
  static void Test(string name,Action body){body();passed++;Console.WriteLine("PASS gateway settings "+name);}
@@ -55,6 +57,8 @@ static class GatewaySettingsRuntimeTests {
   Test("new world clears previous server override",()=>{Start();Receive(true);GatewaySettings.Reset();Check(!GatewaySettings.CarriesAllItems,"previous server retained");Receive(false);Check(!GatewaySettings.CarriesAllItems,"new server ignored");});
   Test("joining server cannot change later local hosting rule",()=>{Start(false);Receive(true);Check(!Published(),"client override leaked into hosting");GatewaySettings.Reset();ZNet.instance.Server=true;Check(!GatewaySettings.CarriesAllItems,"hosting retained remote override");});
   Test("no connection cannot apply rule",()=>{Start();ZNet.instance=null;Receive(true);Check(!GatewaySettings.CarriesAllItems,"disconnected rule applied");});
+  Test("login applies rule before server peer becomes ready",()=>{Start();ZNet.instance.Peer.m_uid=0;Receive(true);Check(GatewaySettings.CarriesAllItems,"initial sync ignored during PeerInfo buffering");});
+  Test("unidentified peer cannot change an established session",()=>{Start();ZNet.instance.Peer.m_uid=0;ZNet.Status=ZNet.ConnectionStatus.Connected;Receive(true);Check(!GatewaySettings.CarriesAllItems,"unidentified live peer changed rule");});
   Console.WriteLine("Gateway settings runtime tests: "+passed+" passed (stand-ins)");return 0;
  }catch(Exception error){Console.Error.WriteLine(error);return 1;}}
 }

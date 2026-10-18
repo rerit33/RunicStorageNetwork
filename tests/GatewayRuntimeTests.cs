@@ -38,7 +38,7 @@ namespace RunicStorageNetwork {
  class NetworkMember {internal const string NetworkKey="network",SchemaKey="schema";internal string Id;}
  class Core:Component {internal NetworkMember Member;public override T GetComponent<T>()=>Member as T;}
  static class GatewaySettings {internal static bool CarriesAllItems;}
- static class Plugin {internal class Number {internal float Value;public Number(float n){Value=n;}}internal class Setting {internal bool Value;public Setting(bool value){Value=value;}}internal static Setting GatewayCarriesAllItems=new Setting(false);internal static Number RelayLink=new Number(50),StorageRadius=new Number(20),SupplyRadius=new Number(20),RelayStorage=new Number(20),RelaySupply=new Number(20);}
+ static class Plugin {internal class Number {internal float Value;public Number(float n){Value=n;}}internal static Number RelayLink=new Number(50),StorageRadius=new Number(20),SupplyRadius=new Number(20),RelayStorage=new Number(20),RelaySupply=new Number(20);}
  static class UnloadedNetworks {internal static bool Enabled=true,Authority=true;internal static long CatalogRevision;internal static List<ZDO> Records=new List<ZDO>();internal static IEnumerable<ZDO> ApiNodes=>Records;internal static bool Ward(Vector3 p,long actor)=>true;}
  static class R {internal static string Key(ZDOID id)=>id.Id;}
  static class Topology {internal static NetworkGraph Graph;internal static Point Position(Vector3 p)=>new Point(p.x,p.y,p.z);internal static NetworkGraph ForActor(long actor)=>GatewayRuntime.Graph(actor);}
