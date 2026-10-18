@@ -11,6 +11,7 @@ using RunicStorageNetwork.Logic;
 namespace RunicStorageNetwork {
  internal static partial class Patches {
   internal static void Install(Harmony h){
+   Patch(h,typeof(ZNet),"Awake",Type.EmptyTypes,nameof(GatewaySessionStarted));
    Patch(h,typeof(Humanoid),"SetupEquipment",Type.EmptyTypes,null,nameof(BuilderEquipped));
    Patch(h,typeof(ItemDrop.ItemData),"GetTooltip",new[]{typeof(ItemDrop.ItemData),typeof(int),typeof(bool),typeof(float),typeof(int),typeof(bool)},null,nameof(BuilderTooltip));
    Patch(h,typeof(TextInput),"RequestText",new[]{typeof(TextReceiver),typeof(string),typeof(int)},nameof(TextPromptBefore),nameof(TextPromptAfter));
@@ -66,6 +67,7 @@ namespace RunicStorageNetwork {
   static void RecipeSelected(InventoryGui __instance,Player player)=>CraftPreparation.Selection(__instance,player);
   static void RecipeUpdated(InventoryGui __instance)=>CraftPreparation.Button(__instance);
   static void CraftCancelled(){CraftPreparation.Cancel();if(Actions.Waiting?.Op.Build==false)Actions.Cancel();}
+  static void GatewaySessionStarted()=>GatewaySettings.Reset();
   static bool Consume(Player __instance)=>Actions.Active==null||Actions.Active.Player!=__instance;
   static bool HaveCraft(Player __instance,Recipe piece,bool discover,int qualityLevel,int amount,ref bool __result){if(discover)return true;if(!Actions.HaveCraft(__instance,piece,qualityLevel,amount,out bool result))return true;__result=result;return false;}
   static bool HaveBuild(Player __instance,Piece piece,Player.RequirementMode mode,ref bool __result){

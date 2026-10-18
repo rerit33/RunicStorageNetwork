@@ -53,6 +53,7 @@ All distances are in metres. Larger radii can include more nodes and chests and 
 | Setting in `[Network]` | Default | Allowed values | Effect |
 | --- | --- | --- | --- |
 | `SupplyEnabled` | `true` | `true` / `false` | Enables network resource supply. Disabling it keeps the build pieces available, but stops new API payments as well. |
+| `GatewayCarriesAllItems` | `false` | `true` / `false` | Removes ordinary portal item restrictions from Runic Gateways, allowing ore and metal bars. Requires a game/server restart. Missing items and tool tier 1000+ items remain blocked. |
 | `StorageRadius` | `20` | `1`–`100` | Core-to-storage connection radius. |
 | `SupplyRadius` | `20` | `1`–`100` | Supply radius around a core for crafting, building and storage access. |
 | `RelayLinkRange` | `50` | `1`–`100` | Maximum distance for links between network nodes. |
@@ -61,6 +62,8 @@ All distances are in metres. Larger radii can include more nodes and chests and 
 | `RescanIntervalSeconds` | `2` | `0.5`–`30` | Interval for ordinary network topology rescans. It is not a timer for every inventory update or API request. |
 
 The Storage Codex uses the coverage of its core or relay; it does not extend it. No recipe changes are needed when changing ranges.
+
+`GatewayCarriesAllItems` is captured when the game or dedicated server starts. Editing it during play takes effect only after a restart. Connecting clients automatically receive the server's active rule, including players who join after the config has been edited for the next restart. The world's normal portal modifier still applies when this setting is `false`.
 
 ## Containers
 

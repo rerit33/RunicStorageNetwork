@@ -16,7 +16,7 @@ Gateway tests cover pairing, independent networks, cycles, local versus distant 
 
 - Windows and PowerShell 5.1 or newer.
 - Unity Editor **6000.0.75f1**, including its bundled C# compiler and .NET Framework reference assemblies. DLL compilation and isolated tests use the compiler only; asset builds run the Editor in batch mode without Play Mode. None of these scripts launches Valheim.
-- To build the plugin: your local Valheim installation and a BepInEx profile containing Jötunn. The current source targets Valheim **1.0.15**, BepInEx **5.4.23.5** and Jötunn **2.30.2**.
+- To build the plugin: your local Valheim installation and a BepInEx profile containing Jötunn. The current source targets Valheim **1.0.20**, BepInEx **5.4.23.5** and Jötunn **2.30.2**.
 
 Game and dependency DLLs are local compilation references. They are not stored in this repository or copied to the output.
 
@@ -154,3 +154,5 @@ Tests cover binding/rebinding separate copies, ward and inventory access, equipm
 The root `.gitignore` allows only the public source and documentation paths. Build output, logs, local configuration, game references, Unity caches and authoring notes stay outside Git. Add new public paths explicitly when needed.
 
 To publish a prepared package through GitHub Actions, see [PUBLISHING.md](PUBLISHING.md).
+
+GatewaySettingsRuntimeTests checks startup-only gateway rules, login synchronization, late joins, world changes, foreign senders and malformed packets against stand-ins. Jotunn initial synchronization delivers the server rule before the player loads; in-game multiplayer validation remains necessary.
